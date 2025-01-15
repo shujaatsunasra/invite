@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invite Link</title>
+</head>
+<body>
+  <h1>Welcome to the Family Invite</h1>
+  <p>Use the following invite token to join the family:</p>
+  <pre id="invite-token"></pre>
+  <button onclick="copyToClipboard()">Copy Token</button>
+  <script>
+    // Simulate fetching token from Supabase (replace with dynamic token logic)
+    const token = new URLSearchParams(window.location.search).get('token') || 'example-invite-token';
+    document.getElementById('invite-token').textContent = token;
+
+    function copyToClipboard() {
+      navigator.clipboard.writeText(token).then(() => {
+        alert('Invite token copied to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>
