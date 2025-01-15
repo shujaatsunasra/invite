@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,42 +10,89 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
       text-align: center;
-      padding: 20px;
+      background-color: white;
+      padding: 20px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
     }
     h1 {
       color: #4CAF50;
+      font-size: 24px;
     }
-    p {
+    .message {
       font-size: 18px;
+      margin-bottom: 20px;
     }
     .error {
       color: red;
+      font-weight: bold;
+    }
+    .details {
+      margin-top: 20px;
+      display: none;
+    }
+    .details p {
+      font-size: 16px;
     }
     button {
       background-color: #4CAF50;
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 24px;
       font-size: 16px;
       cursor: pointer;
+      border-radius: 5px;
+      margin-top: 20px;
     }
     button:hover {
       background-color: #45a049;
     }
+    #loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4CAF50;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
-  <h1>Welcome to the Family Invite</h1>
-  <p id="message">Loading invite details...</p>
-  <div id="details" style="display:none;">
-    <p><strong>Family ID:</strong> <span id="family-id"></span></p>
-    <p><strong>Invite Token:</strong> <span id="token"></span></p>
-    <button onclick="copyToClipboard()">Copy Token</button>
+  <div class="container">
+    <h1>Welcome to the Family Invite</h1>
+    <p id="message" class="message">Loading invite details...</p>
+    <div id="loader"></div>
+    <div id="details" class="details">
+      <p><strong>Family ID:</strong> <span id="family-id"></span></p>
+      <p><strong>Invite Token:</strong> <span id="token"></span></p>
+      <button onclick="copyToClipboard()">Copy Token</button>
+    </div>
+    <div id="error" class="error"></div>
   </div>
+
   <script>
     // Initialize Supabase Client
+
     const supabase = supabase.createClient(
+      
       'https://raprwmuxvyhiusuetcxi.supabase.co', // Replace with your Supabase project URL
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhcHJ3bXV4dnloaXVzdWV0Y3hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ1OTQ5NTcsImV4cCI6MjA1MDE3MDk1N30.SAighC7ldQO1lE68taJD0RVCqNm3zmk54oDcGZT-Fto' // Replace with your Supabase anon key
     );
@@ -54,9 +103,11 @@
 
     // DOM Elements
     const messageEl = document.getElementById('message');
+    const loaderEl = document.getElementById('loader');
     const detailsEl = document.getElementById('details');
     const familyIdEl = document.getElementById('family-id');
     const tokenEl = document.getElementById('token');
+    const errorEl = document.getElementById('error');
 
     // Copy token to clipboard
     function copyToClipboard() {
@@ -70,6 +121,7 @@
       if (!token) {
         messageEl.textContent = 'No invite token provided in the URL.';
         messageEl.classList.add('error');
+        loaderEl.style.display = 'none';
         return;
       }
 
@@ -83,12 +135,14 @@
         if (error || !data) {
           messageEl.textContent = 'Invalid or expired invite token.';
           messageEl.classList.add('error');
+          loaderEl.style.display = 'none';
           return;
         }
 
         if (data.is_used) {
           messageEl.textContent = 'This invite token has already been used.';
           messageEl.classList.add('error');
+          loaderEl.style.display = 'none';
           return;
         }
 
@@ -97,6 +151,7 @@
         if (now > expiresAt) {
           messageEl.textContent = 'This invite token has expired.';
           messageEl.classList.add('error');
+          loaderEl.style.display = 'none';
           return;
         }
 
@@ -105,10 +160,12 @@
         familyIdEl.textContent = data.family_id;
         tokenEl.textContent = data.token;
         detailsEl.style.display = 'block';
+        loaderEl.style.display = 'none';
       } catch (err) {
         console.error('Error fetching invite details:', err);
         messageEl.textContent = 'An error occurred while fetching the invite.';
         messageEl.classList.add('error');
+        loaderEl.style.display = 'none';
       }
     }
 
