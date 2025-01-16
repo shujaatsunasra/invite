@@ -1,176 +1,171 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Family Invite</title>
+  <title>Invite Manager</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
       background-color: #f4f4f9;
       color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      margin: 0;
+      padding: 0;
     }
     .container {
-      text-align: center;
-      background-color: white;
-      padding: 20px 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 100%;
       max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
     }
     h1 {
-      color: #4CAF50;
       font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
     }
     .message {
-      font-size: 18px;
+      font-size: 16px;
       margin-bottom: 20px;
+      text-align: center;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
     }
     .error {
       color: red;
-      font-weight: bold;
+      text-align: center;
     }
-    .details {
+    .success {
+      color: green;
+      text-align: center;
+    }
+    #invite-details {
       margin-top: 20px;
       display: none;
     }
-    .details p {
-      font-size: 16px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-top: 20px;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    #loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #4CAF50;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 2s linear infinite;
-      margin: 20px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    #invite-details p {
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to the Family Invite</h1>
-    <p id="message" class="message">Loading invite details...</p>
-    <div id="loader"></div>
-    <div id="details" class="details">
+    <h1>Join Family</h1>
+    <div id="message" class="message">Loading invite details...</div>
+
+    <div id="form-section" style="display: none;">
+      <p><strong>Admin:</strong> <span id="admin-name"></span></p>
       <p><strong>Family ID:</strong> <span id="family-id"></span></p>
-      <p><strong>Invite Token:</strong> <span id="token"></span></p>
-      <button onclick="copyToClipboard()">Copy Token</button>
+
+      <input type="text" id="full-name" placeholder="Enter your full name" required />
+      <button onclick="joinFamily()">Join Family</button>
+
+      <p id="error-message" class="error"></p>
+      <p id="success-message" class="success"></p>
     </div>
-    <div id="error" class="error"></div>
+
+    <div id="invite-details">
+      <h2>Invite Details</h2>
+      <p><strong>Share this invite link:</strong></p>
+      <p id="invite-link"></p>
+    </div>
   </div>
 
   <script>
     // Initialize Supabase Client
-
     const supabase = supabase.createClient(
-      
-      'https://raprwmuxvyhiusuetcxi.supabase.co', // Replace with your Supabase project URL
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhcHJ3bXV4dnloaXVzdWV0Y3hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ1OTQ5NTcsImV4cCI6MjA1MDE3MDk1N30.SAighC7ldQO1lE68taJD0RVCqNm3zmk54oDcGZT-Fto' // Replace with your Supabase anon key
+      'https://raprwmuxvyhiusuetcxi.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhcHJ3bXV4dnloaXVzdWV0Y3hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ1OTQ5NTcsImV4cCI6MjA1MDE3MDk1N30.SAighC7ldQO1lE68taJD0RVCqNm3zmk54oDcGZT-Fto' //  Supabase anon key
     );
 
-    // Extract the token from the URL
+    // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    const adminId = urlParams.get('admin_id');
+    const familyId = urlParams.get('family_id');
 
-    // DOM Elements
-    const messageEl = document.getElementById('message');
-    const loaderEl = document.getElementById('loader');
-    const detailsEl = document.getElementById('details');
-    const familyIdEl = document.getElementById('family-id');
-    const tokenEl = document.getElementById('token');
-    const errorEl = document.getElementById('error');
-
-    // Copy token to clipboard
-    function copyToClipboard() {
-      navigator.clipboard.writeText(token).then(() => {
-        alert('Invite token copied to clipboard!');
-      });
+    if (!adminId || !familyId) {
+      document.getElementById('message').textContent = 'Invalid invite link. Please check the link and try again.';
+    } else {
+      fetchAdminDetails();
     }
 
-    // Fetch and validate the invite token
-    async function fetchInviteDetails() {
-      if (!token) {
-        messageEl.textContent = 'No invite token provided in the URL.';
-        messageEl.classList.add('error');
-        loaderEl.style.display = 'none';
+    // Fetch admin details and display them
+    async function fetchAdminDetails() {
+      const { data, error } = await supabase
+        .from('users')
+        .select('full_name')
+        .eq('id', adminId)
+        .single();
+
+      if (error) {
+        document.getElementById('message').textContent = 'Error fetching admin details. Please try again later.';
+        console.error(error);
         return;
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('invites')
-          .select('family_id, token, expires_at, is_used')
-          .eq('token', token)
-          .single();
+      // Populate admin details in the UI
+      document.getElementById('admin-name').textContent = data.full_name;
+      document.getElementById('family-id').textContent = familyId;
 
-        if (error || !data) {
-          messageEl.textContent = 'Invalid or expired invite token.';
-          messageEl.classList.add('error');
-          loaderEl.style.display = 'none';
-          return;
-        }
-
-        if (data.is_used) {
-          messageEl.textContent = 'This invite token has already been used.';
-          messageEl.classList.add('error');
-          loaderEl.style.display = 'none';
-          return;
-        }
-
-        const now = new Date();
-        const expiresAt = new Date(data.expires_at);
-        if (now > expiresAt) {
-          messageEl.textContent = 'This invite token has expired.';
-          messageEl.classList.add('error');
-          loaderEl.style.display = 'none';
-          return;
-        }
-
-        // Display invite details
-        messageEl.textContent = 'Invite details:';
-        familyIdEl.textContent = data.family_id;
-        tokenEl.textContent = data.token;
-        detailsEl.style.display = 'block';
-        loaderEl.style.display = 'none';
-      } catch (err) {
-        console.error('Error fetching invite details:', err);
-        messageEl.textContent = 'An error occurred while fetching the invite.';
-        messageEl.classList.add('error');
-        loaderEl.style.display = 'none';
-      }
+      document.getElementById('message').style.display = 'none';
+      document.getElementById('form-section').style.display = 'block';
     }
 
-    // Run the function to fetch invite details
-    fetchInviteDetails();
+    // Function to handle family member joining
+    async function joinFamily() {
+      const fullName = document.getElementById('full-name').value;
+      const errorMessage = document.getElementById('error-message');
+      const successMessage = document.getElementById('success-message');
+
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
+
+      if (!fullName) {
+        errorMessage.textContent = 'Full name is required.';
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('family_members')
+        .insert([
+          {
+            family_id: familyId,
+            user_id: adminId, // Replace this with the logged-in user's ID when authentication is added
+            role: 'member',
+          }
+        ]);
+
+      if (error) {
+        errorMessage.textContent = 'Error joining the family. Please try again.';
+        console.error(error);
+        return;
+      }
+
+      successMessage.textContent = 'You have successfully joined the family!';
+
+      // Display the invite link for sharing
+      const inviteLink = `${window.location.origin}${window.location.pathname}?admin_id=${adminId}&family_id=${familyId}`;
+      document.getElementById('invite-link').textContent = inviteLink;
+      document.getElementById('invite-details').style.display = 'block';
+    }
   </script>
 </body>
 </html>
