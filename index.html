@@ -8,16 +8,18 @@
 <body>
   <h1>Redirecting...</h1>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const adminId = urlParams.get('admin_id');
-    const familyId = urlParams.get('family_id');
+    const params = new URLSearchParams(window.location.search);
+    const inviteId = params.get('invite_id');
 
-    const deepLink = `com.example.flutter_application_10://login-callback?admin_id=${adminId}&family_id=${familyId}`;
-    window.location.href = deepLink;
+    if (inviteId) {
+      const deepLink = `com.example.flutter_application_10://login-callback?invite_id=${inviteId}`;
+      window.location.href = deepLink;
+    } else {
+      document.body.innerHTML = '<p>Invalid invite link.</p>';
+    }
   </script>
 </body>
 </html>
-
 
 
 <!-- <!DOCTYPE html>
