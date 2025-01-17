@@ -1,4 +1,32 @@
+
 <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invite</title>
+</head>
+<body>
+  <h1>Redirecting...</h1>
+  <script>
+    // Extract parameters from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminId = urlParams.get('admin_id');
+    const familyId = urlParams.get('family_id');
+
+    // Construct the deep link URL
+    const deepLink = `com.example.flutter_application_10://login-callback?admin_id=${adminId}&family_id=${familyId}`;
+
+    // Redirect to the deep link
+    window.location.href = deepLink;
+  </script>
+</body>
+</html>
+
+
+
+<!-- <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -128,3 +156,4 @@
   </script>
 </body>
 </html>
+ -->
